@@ -1,5 +1,5 @@
 var SplashScreenLayer = cc.LayerColor.extend({
-	initWithColor:function(color) {
+	init:function(color) {
 		if(!this._super(color))
 		{
 			global.log("SplashScreenLayer's init() called failed.");
@@ -23,7 +23,8 @@ var SplashScreenLayer = cc.LayerColor.extend({
 		return true;
 	},
 	_transitionToMainMenuScene:function () {
-		cc.Director.getInstance().replaceScene(cc.TransitionFade.create(1.0, new MainMenuScene()));
+		// add mainmenu scene later ...
+		cc.Director.getInstance().replaceScene(cc.TransitionFade.create(1.0, new GameplayScene()));
 	}
 });
 
@@ -32,7 +33,7 @@ var SplashScreenScene = cc.Scene.extend({
 		this._super();
 
 		var layer = new SplashScreenLayer();
-        layer.initWithColor(cc.c4b(0,0,0,0));
+        layer.init(cc.c4b(0,0,0,0));
         this.addChild(layer);
 	}
 });

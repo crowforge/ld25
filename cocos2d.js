@@ -28,25 +28,29 @@
     var d = document;
     var c = {
         COCOS2D_DEBUG:2, //0 to turn debug off, 1 for basic debug, and 2 for full debug
-        box2d:false,
-        showFPS:false,
+        box2d:true,
+        chipmunk:false,
+        showFPS:true,
         frameRate:60,
+        loadExtension:false,
         tag:'gameCanvas', //the dom element to run cocos2d on
         SingleEngineFile:'',
         appFiles:[
-            'src/buzz.js',
+            'box2d.js', // what the ... with this manual inclusion!!
+            'buzz.js',
             'src/resource.js',
             'src/splashScreenScene.js',
-            'src/global.js'
+            'src/global.js',
+            'src/gameplayScene.js'
         ]
     };
     window.addEventListener('DOMContentLoaded', function () {
         //first load engine file if specified
         var s = d.createElement('script');
-        s.src = 'Cocos2d-html5-v2.0.min.js'; //IMPORTANT: Un-comment this line if you have packed all files into one
+        s.src = 'Cocos2d-html5-v2.1.min.js'; //IMPORTANT: Un-comment this line if you have packed all files into one
 
-        d.body.appendChild(s);
-        s.c = c;
+        document.ccConfig = c;
         s.id = 'cocos2d-html5';
+        d.body.appendChild(s);
     });
 })();
