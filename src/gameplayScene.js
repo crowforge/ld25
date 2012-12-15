@@ -1,7 +1,7 @@
-var PTM_RATIO = 32;
-
 var GameplayLayer = cc.LayerColor.extend({
-	_world:null,
+	space:null,
+	_debugNode:null,
+	_humanBatchNode:null,
 
 	init:function(color) {
 		if(!this._super(color))
@@ -10,57 +10,112 @@ var GameplayLayer = cc.LayerColor.extend({
 			return false;
 		}
 
-		var winSize = cc.Director.getInstance().getWinSize();
+		// init the less
+		this._humanBatchNode = cc.SpriteBatchNode.create(res_humanSpriteSheet);
+		this.addChild(this._humanBatchNode);
 
-		// create a box2d world
-		var b2Vec2 = Box2D.Common.Math.b2Vec2;
-		var b2BodyDef = Box2D.Dynamics.b2BodyDef;
-		var b2Body = Box2D.Dynamics.b2Body;
-		var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
-		var b2World = Box2D.Dynamics.b2World;
-		var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
-		var b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
+		// create chipmunk space
+		this.setupPhysics();
+		this.setupPhysicsDebugNode();
 
-		this._world = new b2World(new b2Vec2(0, -10), true);
-		this._world.SetContinuousPhysics(true);
-
-		// create ground
-		var groundFixDef = new b2FixtureDef();
-		groundFixDef.density = 1.0;
-		groundFixDef.friction = 0.5;
-		groundFixDef.restitution = 0.2;
-
-		var groundBodyDef = new b2BodyDef();
-		groundBodyDef.type = b2Body.b2_staticBody;
-		groundBodyDef.position.x = 2 / PTM_RATIO;
-		groundBodyDef.position.y = winSize.height / 2.5 / PTM_RATIO;
-
-		groundFixDef.shape = new b2PolygonShape();
-		groundFixDef.shape.SetAsBox(winSize.width/PTM_RATIO/2.5, 10/PTM_RATIO/2);
-
-		this._world.CreateBody(groundBodyDef).CreateFixture(groundFixDef);
-
-		// set up debug draw
-		var debugDraw = new b2DebugDraw();
-		debugDraw.SetSprite(cc.renderContext);
-		debugDraw.SetDrawScale(PTM_RATIO);
-		debugDraw.SetFillAlpha(0.3);
-		debugDraw.SetLineThickness(1.0);
-		debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit | b2DebugDraw.e_centerOfMassBit);
-		this._world.SetDebugDraw(debugDraw);
-
+		// enable mouse and keyboard
+		this.setMouseEnabled(true);
+		this.setKeyboardEnabled(true);
 		// create an update function
 		this.scheduleUpdate();
 
 		return true;
 	},
-	update:function (dt) {
-		this._world.Step(1/60, 10, 10);
-		this._world.ClearForces();
+	// set up chipmunk space
+	setupPhysics:function() {
+		this.space = new cp.Space();
+		this.space.gravity = cp.v(0, -700);
+		this.space.iterations = 15;
+
+		// add ground
+		var winSize = cc.Director.getInstance().getWinSize();
+		var staticBody = this.space.staticBody;
+		var ground = new cp.SegmentShape(staticBody, cp.v(0,10), cp.v(winSize.width,10), 0);
+		ground.setElasticity(1);
+		ground.setFriction(1);
+		this.space.addStaticShape(ground);
 	},
-	draw:function (ctx) {
-		this._super(ctx);
-		this._world.DrawDebugData();
+	setupPhysicsDebugNode:function () {
+		this._debugNode = cc.PhysicsDebugNode.create(this.space);
+		this._debugNode.setVisible(true);
+		this.addChild(this._debugNode);
+	},
+	addBox:function (p) {
+		var space = this.space;
+
+		var width = 50;
+		var height = 50;
+		var mass = width * height * 1/1000;
+		var box = space.addBody(new cp.Body(mass, cp.momentForBox(mass, width, height)));
+		box.setPos(cp.v(p.x, p.y));
+
+		var shape = space.addShape(new cp.BoxShape(box, width, height));
+		shape.setFriction(0.3);
+		shape.setElasticity(0.3);
+	},
+	addCatBox:function (p) {
+		var verts = [
+		    41.5/2, 67.5/2,
+		    33.5/2, -71.5/2,
+		    -50.5/2, -71.5/2,
+		    -31.5/2, 72.5/2
+		];
+		var cat = CPSprite.createWithPolyShape(this.space, 1.0, p, verts, "cat_sleepy.png");
+		this._humanBatchNode.addChild(cat);
+	},
+	update:function (dt) {
+		this.space.step(dt);
+
+		var children = this._humanBatchNode.getChildren();
+		for(var i=0; i<children.length; i++)
+		{
+			var node = children[i];
+			node.update();
+		}
+	},
+	// -- keyboard
+	onKeyUp:function (e) {
+
+	},
+	onKeyDown:function (e) {
+
+	},
+	// -- mouse
+	onMouseEntered:function (e) {
+		return true;
+	},
+	onMouseMoved:function (e) {
+		return true;
+	},
+	onMouseDragged:function (e) {
+		return true;
+	},
+	onMouseDown: function (e) {
+		// check to remove a cat box first
+		var shape = this.space.pointQueryFirst(cp.v(e.getLocation().x, e.getLocation().y), cp.ALL_LAYERS, 0);
+		if(shape)
+		{
+			var spriteNode = shape.body.data;
+			spriteNode.destroy();
+		}
+		else
+			this.addCatBox(e.getLocation());
+		return true;
+	},
+	onEnter:function () {
+		this._super();
+		global.loadSpriteFrames(res_humanSpriteSheetPlist);
+	},
+	onExit:function () {
+		this._super();
+		global.unloadSpriteFrames(res_humanSpriteSheetPlist);
+
+		this.unscheduleUpdate();
 	}
 });
 

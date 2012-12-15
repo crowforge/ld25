@@ -28,20 +28,21 @@
     var d = document;
     var c = {
         COCOS2D_DEBUG:2, //0 to turn debug off, 1 for basic debug, and 2 for full debug
-        box2d:true,
-        chipmunk:false,
+        box2d:false,
+        chipmunk:true,
         showFPS:true,
         frameRate:60,
         loadExtension:false,
         tag:'gameCanvas', //the dom element to run cocos2d on
         SingleEngineFile:'',
         appFiles:[
-            'box2d.js', // what the ... with this manual inclusion!!
+            'chipmunk.js',  // what the ... with this manual inclusion!!
             'buzz.js',
             'src/resource.js',
             'src/splashScreenScene.js',
             'src/global.js',
-            'src/gameplayScene.js'
+            'src/gameplayScene.js',
+            'src/cpSprite.js'
         ]
     };
     window.addEventListener('DOMContentLoaded', function () {
