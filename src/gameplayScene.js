@@ -1,5 +1,16 @@
+var COLLISION_GROUP = {
+	TRIDEROCHE:1,
+}
+
 var GameplayLayer = cc.LayerColor.extend({
 	space:null,
+
+	// flags & info
+	isGameOver:false,
+
+	// objects
+	trideroche:null,
+
 	_debugNode:null,
 	_humanBatchNode:null,
 
@@ -10,7 +21,11 @@ var GameplayLayer = cc.LayerColor.extend({
 			return false;
 		}
 
+		var winSize = cc.Director.getInstance().getWinSize();
+
 		// init the less
+		this.isGameOver = false;
+
 		this._humanBatchNode = cc.SpriteBatchNode.create(res_humanSpriteSheet);
 		this.addChild(this._humanBatchNode);
 
@@ -18,27 +33,34 @@ var GameplayLayer = cc.LayerColor.extend({
 		this.setupPhysics();
 		this.setupPhysicsDebugNode();
 
+		// create trideroche & add into the physics and scene
+		this.trideroche = new Trideroche(this.space, this, cc.p(winSize.width/2, winSize.height/2.5));
+
 		// enable mouse and keyboard
 		this.setMouseEnabled(true);
 		this.setKeyboardEnabled(true);
 		// create an update function
 		this.scheduleUpdate();
 
+		// schedule to maintain the head level of triceroche
+		this.schedule(this._maintainTriderocheHead, 0.4);
+
 		return true;
 	},
 	// set up chipmunk space
 	setupPhysics:function() {
 		this.space = new cp.Space();
-		this.space.gravity = cp.v(0, -700);
-		this.space.iterations = 15;
+		this.space.gravity = cp.v(0, -200);
+		this.space.iterations = 30;
 		this.space.sleepTimeThreshold = 0.5;
 
 		// add ground
 		var winSize = cc.Director.getInstance().getWinSize();
 		var staticBody = this.space.staticBody;
-		var ground = new cp.SegmentShape(staticBody, cp.v(0,10), cp.v(winSize.width,10), 0);
+		var ground = new cp.SegmentShape(staticBody, cp.v(0,10), cp.v(winSize.width,10), 2);
 		ground.setElasticity(1);
 		ground.setFriction(1);
+		ground.shape = 10;
 		this.space.addStaticShape(ground);
 	},
 	setupPhysicsDebugNode:function () {
@@ -52,12 +74,14 @@ var GameplayLayer = cc.LayerColor.extend({
 		var width = 50;
 		var height = 50;
 		var mass = width * height * 1/1000;
-		var box = space.addBody(new cp.Body(mass, cp.momentForBox(mass, width, height)));
+		var box = new cp.Body(mass, cp.momentForBox(mass, width, height));
 		box.setPos(cp.v(p.x, p.y));
+		space.addBody(box);
 
-		var shape = space.addShape(new cp.BoxShape(box, width, height));
+		var shape = new cp.BoxShape(box, width, height);
 		shape.setFriction(0.3);
 		shape.setElasticity(0.3);
+		space.addShape(shape);
 	},
 	addCatBox:function (p) {
 		var verts = [
@@ -117,13 +141,18 @@ var GameplayLayer = cc.LayerColor.extend({
 
 		return body;
 	},
-	addTrideroche:function (p) {
-		// create and add it into both physics & scene world
-		var trideroche = new Trideroche(this.space, this, p);
-	},
 	update:function (dt) {
+		// update chipmunk physics
 		this.space.step(dt);
 
+		if(!this.isGameOver)
+		{
+			//this.trideroche.resetForces();
+			this.trideroche.update();
+		}
+
+		// Sprites node
+		// update all human sprites
 		var children = this._humanBatchNode.getChildren();
 		for(var i=0; i<children.length; i++)
 		{
@@ -136,7 +165,22 @@ var GameplayLayer = cc.LayerColor.extend({
 
 	},
 	onKeyDown:function (e) {
+		if(!this.isGameOver)
+		{
+			if(e == cc.KEY.w)
+			{
+				var winSize = cc.Director.getInstance().getWinSize();
+				this.addCatBox(cc.p(winSize.width/2, winSize.height/2));
+			}
+			// restart game
+			/*if(e == cc.KEY.r)
+			{
+				this.restartGame();
+			}*/
 
+			// update trideroche key control
+			this.trideroche.onKeyDown(e);
+		}
 	},
 	// -- mouse
 	onMouseEntered:function (e) {
@@ -149,17 +193,6 @@ var GameplayLayer = cc.LayerColor.extend({
 		return true;
 	},
 	onMouseDown: function (e) {
-		// check to remove a cat box first
-		var shape = this.space.pointQueryFirst(cp.v(e.getLocation().x, e.getLocation().y), cp.ALL_LAYERS, 0);
-		if(shape)
-		{
-			var spriteNode = shape.body.data;
-			spriteNode.destroy();
-		}
-		else
-		{
-			this.addTrideroche(e.getLocation());
-		}
 		return true;
 	},
 	onEnter:function () {
@@ -171,6 +204,19 @@ var GameplayLayer = cc.LayerColor.extend({
 		global.unloadSpriteFrames(res_humanSpriteSheetPlist);
 
 		this.unscheduleUpdate();
+	},
+	restartGame:function () {
+		// reset states
+		this.isGameOver = false;
+
+		// TODO: remove all objects here
+
+		// re-init
+		this.init(cc.c4b(0,0,0,0));
+	},
+	_maintainTriderocheHead:function (dt) {
+		this.trideroche.maintainHead();
+		global.log("called to maintain trideroche's head.");
 	}
 });
 
