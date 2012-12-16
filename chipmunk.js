@@ -140,8 +140,6 @@
             var v2x = verts[(i+2)%len] + offset.x;
             var v2y = verts[(i+3)%len] + offset.y;
 
-            global.log(v1x + " " + v1y + " " + v2x + "" + v2y);
-
             var a = vcross2(v2x, v2y, v1x, v1y);
             var b = vdot2(v1x, v1y, v1x, v1y) + vdot2(v1x, v1y, v2x, v2y) + vdot2(v2x, v2y, v2x, v2y);
 

@@ -42,7 +42,8 @@
             'src/splashScreenScene.js',
             'src/global.js',
             'src/gameplayScene.js',
-            'src/cpSprite.js'
+            'src/cpSprite.js',
+            'src/trideroche.js'
         ]
     };
     window.addEventListener('DOMContentLoaded', function () {

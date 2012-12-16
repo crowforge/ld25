@@ -117,6 +117,10 @@ var GameplayLayer = cc.LayerColor.extend({
 
 		return body;
 	},
+	addTrideroche:function (p) {
+		// create and add it into both physics & scene world
+		var trideroche = new Trideroche(this.space, this, p);
+	},
 	update:function (dt) {
 		this.space.step(dt);
 
@@ -153,7 +157,9 @@ var GameplayLayer = cc.LayerColor.extend({
 			spriteNode.destroy();
 		}
 		else
-			this.addCar(e.getLocation());
+		{
+			this.addTrideroche(e.getLocation());
+		}
 		return true;
 	},
 	onEnter:function () {
