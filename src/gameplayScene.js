@@ -31,6 +31,7 @@ var GameplayLayer = cc.LayerColor.extend({
 		this.space = new cp.Space();
 		this.space.gravity = cp.v(0, -700);
 		this.space.iterations = 15;
+		this.space.sleepTimeThreshold = 0.5;
 
 		// add ground
 		var winSize = cc.Director.getInstance().getWinSize();
@@ -68,6 +69,54 @@ var GameplayLayer = cc.LayerColor.extend({
 		var cat = CPSprite.createWithPolyShape(this.space, 1.0, p, verts, "cat_sleepy.png");
 		this._humanBatchNode.addChild(cat);
 	},
+	addCar:function (p) {
+		var pos = cp.v(p.x, p.y);
+
+		var wheel1 = this._addWheel_forCar(cp.v.add(cp.v(15,-20), pos));
+		var wheel2 = this._addWheel_forCar(cp.v.add(cp.v(65,-20), pos));
+		var chassis = this._addChassis_forCar(cp.v.add(cp.v(40, 15), pos));
+
+		// relative constraint
+		this.space.addConstraint(new cp.GrooveJoint(chassis, wheel1, cp.v(-25,-10), cp.v(-25,-50), cp.v(0,0)));
+		this.space.addConstraint(new cp.GrooveJoint(chassis, wheel2, cp.v( 25,-10), cp.v( 25,-50), cp.v(0,0)));
+
+		this.space.addConstraint(new cp.DampedSpring(chassis, wheel1, cp.v(-25,0), cp.v(0,0), 50, 400, 20));
+		this.space.addConstraint(new cp.DampedSpring(chassis, wheel2, cp.v(25,0), cp.v(0,0), 50, 400, 20));
+	},
+	_addWheel_forCar:function (cpV) {
+		var radius = 15;
+		var mass = 1;
+		var body = new cp.Body(mass, cp.momentForCircle(mass, 0, radius, cp.v(0,0)));
+		body.setPos(cpV);
+		this.space.addBody(body);
+
+		var shape = new cp.CircleShape(body, radius, cp.v(0,0));
+		shape.setElasticity(0);
+		shape.setFriction(0.7);
+		//shape.group = 1;
+		this.space.addShape(shape);
+
+		return body;
+	},
+	_addChassis_forCar:function (cpV) {
+		var space = this.space;
+
+		var mass = 5;
+		var width = 80;
+		var height = 30;
+
+		var body = new cp.Body(mass, cp.momentForBox(mass, width, height));
+		body.setPos(cpV);
+		this.space.addBody(body);
+
+		var shape = new cp.BoxShape(body, width, height);
+		shape.setElasticity(0);
+		shape.setFriction(0.7);
+		//shape.group = 1;
+		this.space.addShape(shape);
+
+		return body;
+	},
 	update:function (dt) {
 		this.space.step(dt);
 
@@ -104,7 +153,7 @@ var GameplayLayer = cc.LayerColor.extend({
 			spriteNode.destroy();
 		}
 		else
-			this.addCatBox(e.getLocation());
+			this.addCar(e.getLocation());
 		return true;
 	},
 	onEnter:function () {
