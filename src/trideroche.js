@@ -109,9 +109,9 @@ Trideroche.prototype.addTrideroche = function(p){
 }
 Trideroche.prototype.update = function() {
 	// update position of labels
-	this._frontLegLabel.setPosition(cc.p(this.frontFoot.getPos().x, this.frontFoot.getPos().y));
-	this._backLegLabel.setPosition(cc.p(this.backFoot.getPos().x, this.backFoot.getPos().y));
-	this._middleLegLabel.setPosition(cc.p(this.middleFoot.getPos().x, this.middleFoot.getPos().y));
+	this._frontLegLabel.setPosition(cc.p(this.frontFoot.getPos().x, this.frontFoot.getPos().y + 40));
+	this._backLegLabel.setPosition(cc.p(this.backFoot.getPos().x, this.backFoot.getPos().y + 40));
+	this._middleLegLabel.setPosition(cc.p(this.middleFoot.getPos().x, this.middleFoot.getPos().y + 40));
 }
 Trideroche.prototype.onKeyDown = function (e) {
 	// Front foot - Forward
@@ -275,8 +275,8 @@ Trideroche.prototype._addTrideroche_rearleg = function (cpV, isFlipVerts) {
 }
 Trideroche.prototype._addFoot = function(cpV) {
 	var mass = 200;
-	var width = 50;
-	var height = 5;
+	var width = 1;
+	var height = 0.5;
 
 	var body = new cp.Body(mass, cp.momentForBox(mass, width, height));
 	body.setPos(cpV);
