@@ -45,7 +45,11 @@
             'src/cpSprite.js',
             'src/trideroche.js',
             'src/playerProfile.js',
-            'src/level.js'
+            'src/level.js',
+            'src/goat.js',
+            'src/clearedLayer.js',
+            'src/mainMenuScene.js',
+            'src/creditsScene.js'
         ]
     };
     window.addEventListener('DOMContentLoaded', function () {

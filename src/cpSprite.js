@@ -33,9 +33,10 @@ var CPSprite = cc.Sprite.extend({
 		this.setPosition(cc.p(this.body.p.x, this.body.p.y));
 		this.setRotation(cc.RADIANS_TO_DEGREES(-1 * this.body.a));
 	},
+	// destroy all takes care release chipmunk objects
 	destroy:function () {
-		this.space.removeBody(this.body);
 		this.space.removeShape(this.shape);
+		this.space.removeBody(this.body);
 		this.removeFromParent(true);
 	},
 

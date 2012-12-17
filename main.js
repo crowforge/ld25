@@ -61,4 +61,4 @@ var cocos2dApp = cc.Application.extend({
         return true;
     }
 });
-var myApp = new cocos2dApp(GameplayScene);
+var myApp = new cocos2dApp(SplashScreenScene);

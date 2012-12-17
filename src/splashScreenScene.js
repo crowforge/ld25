@@ -17,14 +17,14 @@ var SplashScreenLayer = cc.LayerColor.extend({
 		this.addChild(label);
 
 		this.runAction(cc.Sequence.create(
-			cc.DelayTime.create(3.0),
-			cc.CallFunc.create(this, this._transitionToMainMenuScene)));
+			cc.DelayTime.create(1.0),
+			cc.CallFunc.create(this._transitionToMainMenuScene, this)));
 
 		return true;
 	},
 	_transitionToMainMenuScene:function () {
 		// add mainmenu scene later ...
-		cc.Director.getInstance().replaceScene(cc.TransitionFade.create(1.0, new GameplayScene()));
+		cc.Director.getInstance().replaceScene(cc.TransitionFade.create(1.0, new MainMenuScene()));
 	}
 });
 

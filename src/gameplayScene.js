@@ -2,6 +2,7 @@ var COLLISION_GROUP = {
 	GROUND: 99,
 	TRIDEROCHE:1,
 	TRIDEROCHE_FOOT:2,
+	GOAT:3
 }
 
 var GameplaySetting = {
@@ -13,6 +14,8 @@ var GameplayLayer = cc.LayerColor.extend({
 
 	// flags & info
 	isGameOver:false,
+	timeRecord:-1,	// in secs
+	timeRecordLabel:null,
 
 	// objects
 	trideroche:null,
@@ -20,7 +23,7 @@ var GameplayLayer = cc.LayerColor.extend({
 	levelInfo:null,
 
 	_debugNode:null,
-	_humanBatchNode:null,
+	_goatSprite:null,	// list of goat sprites
 	_groundShapes:[],
 
 	initWithLevel:function(color, level) {
@@ -32,11 +35,16 @@ var GameplayLayer = cc.LayerColor.extend({
 
 		var winSize = cc.Director.getInstance().getWinSize();
 
+		// load sprites
+		global.loadSpriteFrames(res_humanSpriteSheetPlist);
+
 		// init the less
 		this.isGameOver = false;
-
-		this._humanBatchNode = cc.SpriteBatchNode.create(res_humanSpriteSheet);
-		this.addChild(this._humanBatchNode);
+		// add time record label
+		this.timeRecordLabel = cc.LabelTTF.create("00:00", "AtariClassic", 15);
+		this.timeRecordLabel.setPosition(cc.p(winSize.width - this.timeRecordLabel.getContentSize().width, winSize.height-20));
+		this.timeRecordLabel.setColor(cc.c3b(255,255,255));
+		this.addChild(this.timeRecordLabel, 10);
 
 		// create chipmunk space
 		this.setupPhysicsWithLevel(level);
@@ -54,6 +62,7 @@ var GameplayLayer = cc.LayerColor.extend({
 
 		// schedule to maintain the head level of triceroche
 		this.schedule(this._maintainTriderocheHead, 0.4);
+		this.schedule(this._updateTimeRecord, 1.0);
 
 		return true;
 	},
@@ -67,7 +76,7 @@ var GameplayLayer = cc.LayerColor.extend({
 		var winSize = cc.Director.getInstance().getWinSize();
 		var staticBody = this.space.staticBody;
 
-		global.log("level = " + level);
+		// build level
 		this.levelInfo = levels[level-1];
 		for(var i=0; i<this.levelInfo.grounds.length; i++)
 		{
@@ -83,6 +92,9 @@ var GameplayLayer = cc.LayerColor.extend({
 			// save ground into list
 			this._groundShapes.push(ground);
 		}
+
+		// add goat
+		this.addGoat(cc.p(this.levelInfo.goatPosition.x, this.levelInfo.goatPosition.y));
 	},
 	setupPhysicsDebugNode:function () {
 		this._debugNode = cc.PhysicsDebugNode.create(this.space);
@@ -104,15 +116,10 @@ var GameplayLayer = cc.LayerColor.extend({
 		shape.setElasticity(0.3);
 		space.addShape(shape);
 	},
-	addCatBox:function (p) {
-		var verts = [
-		    41.5/2, 67.5/2,
-		    33.5/2, -71.5/2,
-		    -50.5/2, -71.5/2,
-		    -31.5/2, 72.5/2
-		];
-		var cat = CPSprite.createWithPolyShape(this.space, 1.0, p, verts, "cat_sleepy.png");
-		this._humanBatchNode.addChild(cat);
+	addGoat:function (p) {
+		var goat = Goat.create(this.space, p);
+		this.addChild(goat);
+		this._goatSprite = goat;
 	},
 	addCar:function (p) {
 		var pos = cp.v(p.x, p.y);
@@ -180,6 +187,30 @@ var GameplayLayer = cc.LayerColor.extend({
 				this.setPositionX(-this.camPos.x + winSize.width/2);
 			this.setPositionY(-this.camPos.y + winSize.height/1.6);
 
+			// update position of timerecord label
+			this.timeRecordLabel.setPosition(cc.p(this.trideroche.head.getPos().x, 
+				this.trideroche.head.getPos().y + 30));
+
+			// update goat
+			this._goatSprite.update();
+			// check for goats to be fell down the platform (that's our task)
+			if(this._goatSprite.getPositionY() <= -200)
+			{
+				this._goatSprite.destroy();
+				this._goatSprite = null;	// null it out, so we won't twice destroy it
+
+				// delay a bit then start a next game
+				profile.cleared[profile.selectedLevel-1] = 1;
+				profile.recordTimes[profile.selectedLevel-1] = this.timeRecord;
+
+				profile.selectedLevel++;
+
+				// win!
+				this.isGameOver = true;
+				// add cleared layer on-top
+				this.addChild(ClearedLayer.create(this.timeRecordLabel.getString()));
+			}
+
 			// check for game over (game over condition)
 			if(this.trideroche.head.getPos().y <= -1000)
 			{
@@ -191,15 +222,6 @@ var GameplayLayer = cc.LayerColor.extend({
 					cc.CallFunc.create(this.restartGame, this))
 				);
 			}
-		}
-
-		// Sprites node
-		// update all human sprites
-		var children = this._humanBatchNode.getChildren();
-		for(var i=0; i<children.length; i++)
-		{
-			var node = children[i];
-			node.update();
 		}
 	},
 	// -- keyboard
@@ -237,19 +259,22 @@ var GameplayLayer = cc.LayerColor.extend({
 	},
 	onEnter:function () {
 		this._super();
-		global.loadSpriteFrames(res_humanSpriteSheetPlist);
 	},
 	onExit:function () {
-		this._super();
 		global.unloadSpriteFrames(res_humanSpriteSheetPlist);
+
+		this._super();
 	},
 	restartGame:function () {
 		// reset states
 		this.isGameOver = false;
 
+		this.timeRecord = 0;
+
 		// unschedule
 		this.unscheduleUpdate();
 		this.unschedule(this._maintainTriderocheHead);
+		this.unschedule(this._updateTimeRecord);
 
 		// remove all objects here
 		for(var i=0; i<this._groundShapes.length; i++)
@@ -260,6 +285,9 @@ var GameplayLayer = cc.LayerColor.extend({
 
 		// remove all sprite nodes
 		this.removeAllChildren(true);
+		// remove sprite from the scene and release physics related objects (if goat is still alive)
+		if(this._goatSprite != null)
+			this._goatSprite.destroy();
 
 		// re-init
 		this.initWithLevel(cc.c4b(0,0,0,0), profile.selectedLevel);
@@ -268,6 +296,29 @@ var GameplayLayer = cc.LayerColor.extend({
 		// not apply the force anymore if it will be dies at the ends
 		if(this.trideroche.head.getPos().y > -100)
 			this.trideroche.maintainHead();
+	},
+	_updateTimeRecord:function (dt) {
+		if(!this.isGameOver)
+		{
+			// update time record
+			this.timeRecord += dt;
+
+			this.timeRecordLabel.setString(this._toTimeFormat(Math.round(this.timeRecord)));
+		}
+	},
+	_toTimeFormat:function (totalSecs) {
+		var minutes = Math.floor(totalSecs / 60);
+		var secs = totalSecs % 60;
+
+		var strMinutes = minutes + "";
+		var strSecs = secs + "";
+
+		if(minutes < 10)
+			strMinutes = "0" + minutes;
+		if(secs < 10)
+			strSecs = "0" + secs;
+
+		return strMinutes +  ":" + strSecs;
 	}
 });
 
