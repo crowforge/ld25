@@ -73,7 +73,7 @@ var CreditsLayer = cc.LayerColor.extend({
 		upperY = this._artistNameLabel.getPositionY() - this._artistNameLabel.getContentSize().height/2;
 
 		// -- Special Thanks --
-		this._specialThanksHeaderLabel = cc.LabelTTF.create("- Note -", "AtariClassic", 24);
+		this._specialThanksHeaderLabel = cc.LabelTTF.create("- Ludum Dare 25 (Jam) -", "AtariClassic", 24);
 		this._specialThanksHeaderLabel.setPosition(cc.p(winSize.width/2, upperY - bigSpacing*3 - this._specialThanksHeaderLabel.getContentSize().height/2));
 		this.addChild(this._specialThanksHeaderLabel);
 		upperY = this._specialThanksHeaderLabel.getPositionY() - this._specialThanksHeaderLabel.getContentSize().height/2;
