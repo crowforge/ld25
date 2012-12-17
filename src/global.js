@@ -67,5 +67,9 @@ var gmath = {
 	// Input is cc.Point
 	getLengthFrom:function(vec1, vec2) {
 		return Math.sqrt( Math.pow(vec1.x - vec2.x, 2), Math.pow(vec1.y - vec2.y, 2));
-	}
-}
+	},
+	// Lerp
+	lerp:function(a, b, u) {
+    	return (1 - u) * a + u * b;
+    }
+};

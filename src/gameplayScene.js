@@ -4,6 +4,10 @@ var COLLISION_GROUP = {
 	TRIDEROCHE_FOOT:2,
 }
 
+var GameplaySetting = {
+	CAMERA_SPEED:0.15
+}
+
 var GameplayLayer = cc.LayerColor.extend({
 	space:null,
 
@@ -12,6 +16,7 @@ var GameplayLayer = cc.LayerColor.extend({
 
 	// objects
 	trideroche:null,
+	camPos:null,
 
 	_debugNode:null,
 	_humanBatchNode:null,
@@ -37,6 +42,7 @@ var GameplayLayer = cc.LayerColor.extend({
 
 		// create trideroche & add into the physics and scene
 		this.trideroche = new Trideroche(this.space, this, cc.p(winSize.width/2, winSize.height/2.5));
+		this.camPos = cc.p(this.trideroche.body.getPos().x, this.trideroche.body.getPos().y);
 
 		// enable mouse and keyboard
 		this.setMouseEnabled(true);
@@ -157,8 +163,14 @@ var GameplayLayer = cc.LayerColor.extend({
 
 		if(!this.isGameOver)
 		{
+			var winSize = cc.Director.getInstance().getWinSize();
+
 			//this.trideroche.resetForces();
 			this.trideroche.update(dt);
+			// camera to follow trideroche
+			this.camPos.x = gmath.lerp(this.camPos.x, this.trideroche.body.getPos().x, GameplaySetting.CAMERA_SPEED);
+			this.camPos.y = gmath.lerp(this.camPos.y, this.trideroche.body.getPos().y, GameplaySetting.CAMERA_SPEED);
+			this.setPosition(cc.p(-this.camPos.x + winSize.width/2, -this.camPos.y + winSize.height/1.6));
 		}
 
 		// Sprites node
