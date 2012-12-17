@@ -43,7 +43,8 @@
             'src/global.js',
             'src/gameplayScene.js',
             'src/cpSprite.js',
-            'src/trideroche.js'
+            'src/trideroche.js',
+            'src/playerProfile.js'
         ]
     };
     window.addEventListener('DOMContentLoaded', function () {

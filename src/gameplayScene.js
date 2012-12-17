@@ -21,8 +21,8 @@ var GameplayLayer = cc.LayerColor.extend({
 	_debugNode:null,
 	_humanBatchNode:null,
 
-	init:function(color) {
-		if(!this._super(color))
+	initWithLevel:function(color, level) {
+		if(!this.init(color))
 		{
 			global.log("GameplayLayer's init() called failed.");
 			return false;
@@ -37,7 +37,7 @@ var GameplayLayer = cc.LayerColor.extend({
 		this.addChild(this._humanBatchNode);
 
 		// create chipmunk space
-		this.setupPhysics();
+		this.setupPhysicsWithLevel(level);
 		this.setupPhysicsDebugNode();
 
 		// create trideroche & add into the physics and scene
@@ -56,7 +56,7 @@ var GameplayLayer = cc.LayerColor.extend({
 		return true;
 	},
 	// set up chipmunk space
-	setupPhysics:function() {
+	setupPhysicsWithLevel:function(level) {
 		this.space = new cp.Space();
 		this.space.gravity = cp.v(0, -200);
 		this.space.iterations = 15;
@@ -64,8 +64,26 @@ var GameplayLayer = cc.LayerColor.extend({
 		// add ground
 		var winSize = cc.Director.getInstance().getWinSize();
 		var staticBody = this.space.staticBody;
-		var ground = new cp.SegmentShape(staticBody, cp.v(0,10), cp.v(winSize.width-300,10), 5);
-		var ground2 = new cp.SegmentShape(staticBody, cp.v(winSize.width-250,40), cp.v(winSize.width,40),5);
+		//var ground = new cp.SegmentShape(staticBody, cp.v(0,10), cp.v(winSize.width-300,10), 5);
+		//var ground2 = new cp.SegmentShape(staticBody, cp.v(winSize.width-250,40), cp.v(winSize.width,40),5);
+
+		global.log("level = " + level);
+		var verts1 = [
+			winSize.width-300,10,
+			winSize.width-300,-50,
+			0,-50,
+			0,10
+		];
+
+		var verts2 = [
+			winSize.width,10,
+			winSize.width,-50,
+			winSize.width-250,-50,
+			winSize.width-250,10
+		];
+
+		var ground = new cp.PolyShape(staticBody, verts1, cp.v(0,0));
+		var ground2 = new cp.PolyShape(staticBody, verts2, cp.v(0,0));
 
 		ground.setElasticity(0.5);
 		ground.setFriction(1);
@@ -244,7 +262,7 @@ var GameplayScene = cc.Scene.extend({
 		this._super();
 
 		var layer = new GameplayLayer();
-        layer.init(cc.c4b(0,0,0,0));
+        layer.initWithLevel(cc.c4b(0,0,0,0), profile.selectedLevel);	// use the global setting to generate map from selected level
         this.addChild(layer);
 	}
 });
