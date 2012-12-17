@@ -1,5 +1,7 @@
 var COLLISION_GROUP = {
+	GROUND: 99,
 	TRIDEROCHE:1,
+	TRIDEROCHE_FOOT:2,
 }
 
 var GameplayLayer = cc.LayerColor.extend({
@@ -51,17 +53,25 @@ var GameplayLayer = cc.LayerColor.extend({
 	setupPhysics:function() {
 		this.space = new cp.Space();
 		this.space.gravity = cp.v(0, -200);
-		this.space.iterations = 30;
-		this.space.sleepTimeThreshold = 0.5;
+		this.space.iterations = 15;
 
 		// add ground
 		var winSize = cc.Director.getInstance().getWinSize();
 		var staticBody = this.space.staticBody;
-		var ground = new cp.SegmentShape(staticBody, cp.v(0,10), cp.v(winSize.width,10), 2);
-		ground.setElasticity(1);
+		var ground = new cp.SegmentShape(staticBody, cp.v(0,10), cp.v(winSize.width-300,10), 5);
+		var ground2 = new cp.SegmentShape(staticBody, cp.v(winSize.width-250,40), cp.v(winSize.width,40),5);
+
+		ground.setElasticity(0.5);
 		ground.setFriction(1);
-		ground.shape = 10;
+		ground.shape = COLLISION_GROUP.GROUND;
+		ground.setCollisionType(COLLISION_GROUP.GROUND);
+
+		ground2.setElasticity(0.5);
+		ground2.setFriction(1);
+		ground2.shape = COLLISION_GROUP.GROUND;
+		ground2.setCollisionType(COLLISION_GROUP.GROUND);
 		this.space.addStaticShape(ground);
+		this.space.addStaticShape(ground2);
 	},
 	setupPhysicsDebugNode:function () {
 		this._debugNode = cc.PhysicsDebugNode.create(this.space);
@@ -148,7 +158,7 @@ var GameplayLayer = cc.LayerColor.extend({
 		if(!this.isGameOver)
 		{
 			//this.trideroche.resetForces();
-			this.trideroche.update();
+			this.trideroche.update(dt);
 		}
 
 		// Sprites node
@@ -162,16 +172,14 @@ var GameplayLayer = cc.LayerColor.extend({
 	},
 	// -- keyboard
 	onKeyUp:function (e) {
-
+		if(!this.isGameOver)
+		{
+			this.trideroche.onKeyUp(e);
+		}
 	},
 	onKeyDown:function (e) {
 		if(!this.isGameOver)
 		{
-			if(e == cc.KEY.w)
-			{
-				var winSize = cc.Director.getInstance().getWinSize();
-				this.addCatBox(cc.p(winSize.width/2, winSize.height/2));
-			}
 			// restart game
 			/*if(e == cc.KEY.r)
 			{
@@ -216,7 +224,6 @@ var GameplayLayer = cc.LayerColor.extend({
 	},
 	_maintainTriderocheHead:function (dt) {
 		this.trideroche.maintainHead();
-		global.log("called to maintain trideroche's head.");
 	}
 });
 

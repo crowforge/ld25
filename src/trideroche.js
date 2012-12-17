@@ -1,6 +1,51 @@
+var TriderocheSetting = {
+	FOOT_STEP_COOLDOWN_TIME: 2, // in secs
+	FOOT_UP_STEP_COOLDOWN_TIME: 3, // in secs
+	HOLD_KEY_STEP: 10,	// amount that increase each frame from holding key
+	FOOT_UP_Y_MAX_LEVEL_1: 150,	// limitation on y-position
+	THRESHOLD_LEG_CONSIDER_UP: 0.5 // in secs
+}
+
 function Trideroche (space, parentNode, pos) {
 	this.space = space;
 	this.parentNode = parentNode;
+
+	// -- internal variables -- //
+	// holding key
+	this._frontFootHoldKeyCounting = 0;
+	this._backFootHoldKeyCounting = 0;
+	this._middleFootHoldKeyCounting = 0;
+	//  forward step cool down
+	this._frontFootCoolDownCounting = 0;
+	this._backFootCoolDownCounting = 0;
+	this._middleFootCoolDownCounting = 0;
+	// up step cool down
+
+	// forward step
+	this._isFrontFootStartedStep = false;
+	this._isBackFootStartedStep = false;
+	this._isMiddleFootStartedStep = false;
+
+	// to detect legs when they're up (with threshold duration)
+	this._frontLegUpCountingTime = 0;
+	this._backLegUpCountingTime = 0;
+	this._middleLegUpCountingTime = 0;
+	// flags to count time
+	this._isFrontLegUpStartedToSeparate = false;
+	this._isBackLegUpStartedToSeparate = false;
+	this._isMiddleLegUpStartedToSeparate = false;
+	// for convenience counting of legs that're up
+	this._countLegsUp = 3;	// we will spawn it in the air
+
+	// -- end of internal variables -- //
+
+	// -- public members -- //
+	this.currentFootUpLevel = 1;
+	this.currentActiveFootUpYMax = TriderocheSetting.FOOT_UP_Y_MAX_LEVEL_1;
+
+	this.isFrontLegUp = true;
+	this.isBackLegUp = true;
+	this.isMiddleLegUp = true;
 
 	// Declare to let the class knows first
 	// chipmunk objects
@@ -42,8 +87,12 @@ function Trideroche (space, parentNode, pos) {
 	this.parentNode.addChild(this._backLegLabel);
 	this.parentNode.addChild(this._middleLegLabel);
 
+	// -- end of public members -- //
+
 	// create chipmunk objects
 	this.addTrideroche(pos);
+	// set up handlers
+	this.setUpCollisionHandler();
 }
 Trideroche.prototype.addTrideroche = function(p){
 	var pos = cp.v(p.x, p.y);
@@ -72,9 +121,16 @@ Trideroche.prototype.addTrideroche = function(p){
 	this.middleRearLeg.setAngle(-cc.DEGREES_TO_RADIANS(-80));
 
 	// virtual feet
+	// note: use numberic to represent which foot is here.
+	// 1 - front foot
+	// 2 - back foot
+	// 3 - middle foot
 	this.frontFoot = this._addFoot(cp.v.add(cp.v(50,25), pos));
+	this.frontFoot.data = 1;
 	this.backFoot = this._addFoot(cp.v.add(cp.v(-50,25), pos));
+	this.backFoot.data = 2;
 	this.middleFoot = this._addFoot(cp.v.add(cp.v(25,30), pos));
+	this.middleFoot.data = 3;
 
 	// joint
 	// body & head
@@ -107,83 +163,191 @@ Trideroche.prototype.addTrideroche = function(p){
 	this.space.addConstraint(new cp.PivotJoint(this.backRearLeg, this.backFoot, cp.v(-60, 0), cp.v(0,2.5)));
 	this.space.addConstraint(new cp.PivotJoint(this.middleRearLeg, this.middleFoot, cp.v(-60, 0), cp.v(0,2.5)));
 }
-Trideroche.prototype.update = function() {
+Trideroche.prototype.setUpCollisionHandler = function() {
+	this.space.addCollisionHandler(COLLISION_GROUP.TRIDEROCHE_FOOT, COLLISION_GROUP.GROUND,
+		null,
+		null,
+		this._footAndGroundPostCollisionHandler.bind(this),
+		this._footAndGroundSeparateCollisionHandler.bind(this)
+		);
+}
+Trideroche.prototype.update = function(dt) {
 	// update position of labels
 	this._frontLegLabel.setPosition(cc.p(this.frontFoot.getPos().x, this.frontFoot.getPos().y + 40));
 	this._backLegLabel.setPosition(cc.p(this.backFoot.getPos().x, this.backFoot.getPos().y + 40));
 	this._middleLegLabel.setPosition(cc.p(this.middleFoot.getPos().x, this.middleFoot.getPos().y + 40));
+
+	// update cool down time | forward-step
+	if(this._isFrontFootStartedStep)
+	{
+		this._frontFootCoolDownCounting += dt;
+		if(this._frontFootCoolDownCounting >= TriderocheSetting.FOOT_STEP_COOLDOWN_TIME)
+		{
+			this._frontFootCoolDownCounting = 0;
+			this._isFrontFootStartedStep = false;
+		}
+	}
+	if(this._isBackFootStartedStep)
+	{
+		this._backFootCoolDownCounting += dt;
+		if(this._backFootCoolDownCounting >= TriderocheSetting.FOOT_STEP_COOLDOWN_TIME)
+		{
+			this._backFootCoolDownCounting = 0;
+			this._isBackFootStartedStep = false;
+		}
+	}
+	if(this._isMiddleFootStartedStep)
+	{
+		this._middleFootCoolDownCounting += dt;
+		if(this._middleFootCoolDownCounting >= TriderocheSetting.FOOT_STEP_COOLDOWN_TIME)
+		{
+			this._middleFootCoolDownCounting = 0;
+			this._isMiddleFootStartedStep = false;
+		}
+	}
+
+	// to detect legs when they are up
+	if(this._isFrontLegUpStartedToSeparate)
+	{
+		this._frontLegUpCountingTime += dt;
+
+		if(this._frontLegUpCountingTime >= TriderocheSetting.THRESHOLD_LEG_CONSIDER_UP)
+		{
+			this._frontLegUpCountingTime = 0;
+			this._isFrontLegUpStartedToSeparate = false;
+
+			this.isFrontLegUp = true;
+
+			this._countLegsUp++;
+		}
+	}
+	if(this._isBackLegUpStartedToSeparate)
+	{
+		this._backLegUpCountingTime += dt;
+
+		if(this._backLegUpCountingTime >= TriderocheSetting.THRESHOLD_LEG_CONSIDER_UP)
+		{
+			this._backLegUpCountingTime = 0;
+			this._isBackLegUpStartedToSeparate = false;
+
+			this.isBackLegUp = true;
+
+			this._countLegsUp++;
+		}
+	}
+	if(this._isMiddleLegUpStartedToSeparate)
+	{
+		this._middleLegUpCountingTime += dt;
+
+		if(this._middleLegUpCountingTime >= TriderocheSetting.THRESHOLD_LEG_CONSIDER_UP)
+		{
+			this._middleLegUpCountingTime = 0;
+			this._isMiddleLegUpStartedToSeparate = false;
+
+			this.isMiddleLegUp = true;
+
+			this._countLegsUp++;
+		}
+	}
+}
+Trideroche.prototype.onKeyUp = function (e) {
+	if(e == cc.KEY.q)
+	{
+		this._frontFootHoldKeyCounting = 0;
+	}
+	if(e == cc.KEY.w)
+	{
+		this._backFootHoldKeyCounting = 0;
+	}
+	if(e == cc.KEY.e)
+	{
+		this._middleFootHoldKeyCounting = 0;
+	}
 }
 Trideroche.prototype.onKeyDown = function (e) {
 	// Front foot - Forward
-	if(e == cc.KEY.a)
+	if(e == cc.KEY.a && !this._isFrontFootStartedStep && this.isFrontLegUp)
 	{
 		var pos = this.frontFoot.getPos();
-		this.frontFoot.setVel(cp.v(150,150));
+		this.frontFoot.setVel(cp.v(120,0));
 		global.log("Front foot moved forward");
+
+		this._isFrontFootStartedStep = true;
 	}
+
 	// Back foot - Forward
-	if(e == cc.KEY.s)
+	if(e == cc.KEY.s && !this._isBackFootStartedStep && this.isBackLegUp)
 	{
 		var pos = this.backFoot.getPos();
-		this.backFoot.setVel(cp.v(150,150));
+		this.backFoot.setVel(cp.v(120,0));
 		global.log("Back foot moved forward");
+
+		this._isBackFootStartedStep = true;
 	}
 	// Middle foot - Forward
-	if(e == cc.KEY.d)
+	if(e == cc.KEY.d && !this._isMiddleFootStartedStep && this.isMiddleLegUp)
 	{
 		var pos = this.middleFoot.getPos();
-		this.middleFoot.setVel(cp.v(150,150));
+		this.middleFoot.setVel(cp.v(120,0));
 		global.log("Middle foot moved forward");
+
+		this._isMiddleFootStartedStep = true;
 	}
 
 	// Front foot - Backward
-	if(e == cc.KEY.z)
+	if(e == cc.KEY.z && !this._isFrontFootStartedStep && this.isFrontLegUp)
 	{
 		var pos = this.frontFoot.getPos();
-		this.frontFoot.setVel(cp.v(-150,150));
+		this.frontFoot.setVel(cp.v(-120,0));
 		global.log("Front foot moved backward");
+
+		this._isFrontFootStartedStep = true;
 	}
 	// Back foot - Backward
-	if(e == cc.KEY.x)
+	if(e == cc.KEY.x && !this._isBackFootStartedStep && this.isBackLegUp)
 	{
 		var pos = this.backFoot.getPos();
-		this.backFoot.setVel(cp.v(-150,150));
+		this.backFoot.setVel(cp.v(-120,0));
 		global.log("Back foot moved backward");
+
+		this._isBackFootStartedStep = true;
 	}
 	// Middle foot - Backward
-	if(e == cc.KEY.c)
+	if(e == cc.KEY.c && !this._isMiddleFootStartedStep && this.isMiddleLegUp)
 	{
 		var pos = this.middleFoot.getPos();
-		this.middleFoot.setVel(cp.v(-150,150));
+		this.middleFoot.setVel(cp.v(-120,0));
 		global.log("Middle foot moved backward");
+
+		this._isMiddleFootStartedStep = true;
 	}
 
 	// Front foot - Up
-	if(e == cc.KEY.q)
+	if(e == cc.KEY.q && this.frontFoot.getPos().y <= this.currentActiveFootUpYMax && this._countLegsUp <= 1)
 	{
 		var pos = this.frontFoot.getPos();
-		this.frontFoot.setPos(cp.v(0, pos.y + 20));
-		global.log("Front foot moved up");
+		this.frontFoot.setVel(cp.v(0, 150+this._frontFootHoldKeyCounting));
+		this._frontFootHoldKeyCounting += TriderocheSetting.HOLD_KEY_STEP;
 
-		//this.frontFoot.applyForce(cp.v(-8000,0), cp.v(0,0));
+		global.log("Front foot moved up [" + this._frontFootHoldKeyCounting + "]");
 	}
 	// Back foot - Up
-	if(e == cc.KEY.w)
+	if(e == cc.KEY.w && this.backFoot.getPos().y <= this.currentActiveFootUpYMax && this._countLegsUp <= 1)
 	{
 		var pos = this.backFoot.getPos();
-		this.backFoot.setPos(cp.v(0, pos.y + 20));
-		global.log("Back foot moved up");
+		this.backFoot.setVel(cp.v(0, 150+this._backFootHoldKeyCounting));
+		this._backFootHoldKeyCounting += TriderocheSetting.HOLD_KEY_STEP;
 
-		//this.backFoot.applyForce(cp.v(-8000,0), cp.v(0,0));
+		global.log("Back foot moved up [" + this._backFootHoldKeyCounting + "]");
 	}
 	// Middle foot - Up
-	if(e == cc.KEY.e)
+	if(e == cc.KEY.e && this.middleFoot.getPos().y <= this.currentActiveFootUpYMax && this._countLegsUp <= 1)
 	{
-		var pos = this.middleFoot.getPos();
-		this.middleFoot.setPos(cp.v(0, pos.y + 20));
-		global.log("Middle foot moved up");
+		var pos = this.backFoot.getPos();
+		this.middleFoot.setVel(cp.v(0, 150+this._middleFootHoldKeyCounting));
+		this._middleFootHoldKeyCounting += TriderocheSetting.HOLD_KEY_STEP;
 
-		//this.middleFoot.applyForce(cp.v(-8000,0), cp.v(0,0));
+		global.log("Middle foot moved up [" + this._middleFootHoldKeyCounting + "]");
 	}
 }
 Trideroche.prototype._addTrideroche_head = function (cpV){
@@ -286,6 +450,7 @@ Trideroche.prototype._addFoot = function(cpV) {
 	shape.setElasticity(0);
 	shape.setFriction(0.2);
 	shape.group = COLLISION_GROUP.TRIDEROCHE;
+	shape.setCollisionType(COLLISION_GROUP.TRIDEROCHE_FOOT);
 	this.space.addShape(shape);
 
 	return body;
@@ -293,5 +458,63 @@ Trideroche.prototype._addFoot = function(cpV) {
 Trideroche.prototype.maintainHead = function() {
 	this.head.setVel(cp.v(0,200));
 }
+Trideroche.prototype._footAndGroundPostCollisionHandler = function(arbiter, space) {
+	var shapes = arbiter.getShapes();
+	var foot = shapes[0].body.data;
+	
+	if(foot == 1 && this.isFrontLegUp)
+	{
+		this.isFrontLegUp = false;
+		this._isFrontLegUpStartedToSeparate = false;
+
+		this._countLegsUp--;
+	}
+	else if(foot == 2 && this.isBackLegUp)
+	{
+		this.isBackLegUp = false;
+		this._isBackLegUpStartedToSeparate = false;
+
+		this._countLegsUp--;
+	}
+	else if(foot == 3 && this.isMiddleLegUp)
+	{
+		this.isMiddleLegUp = false;
+		this._isMiddleLegUpStartedToSeparate = false;
+
+		this._countLegsUp--;
+	}
+}
+Trideroche.prototype._footAndGroundSeparateCollisionHandler = function(arbiter, space) {
+	var shapes = arbiter.getShapes();
+	var foot= shapes[0].body.data;
+
+	if(foot == 1)
+	{
+		this._isFrontLegUpStartedToSeparate = true;
+	}
+	else if(foot == 2)
+	{
+		this._isBackLegUpStartedToSeparate = true;
+	}
+	else if(foot == 3)
+	{
+		this._isMiddleLegUpStartedToSeparate = true;
+	}
+}
+// TODO: Add this stuff to completely destroy the object properly
+Trideroche.prototype.destroy = function()
+{
+	// remove handlers
+	this.space.removeCollisionHandler(COLLISION_GROUP.TRIDEROCHE, COLLISION_GROUP.GROUND);
+
+	// remove constraints
+
+	// remove shapes
+
+	// remove bodies
+}
+
+
+
 
 
