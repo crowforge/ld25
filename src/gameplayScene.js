@@ -17,11 +17,11 @@ var GameplayLayer = cc.LayerColor.extend({
 	// objects
 	trideroche:null,
 	camPos:null,
-	groundShapes:[],
 	levelInfo:null,
 
 	_debugNode:null,
 	_humanBatchNode:null,
+	_groundShapes:[],
 
 	initWithLevel:function(color, level) {
 		if(!this.init(color))
@@ -81,7 +81,7 @@ var GameplayLayer = cc.LayerColor.extend({
 			this.space.addStaticShape(ground);
 
 			// save ground into list
-			this.groundShapes.push(ground);
+			this._groundShapes.push(ground);
 		}
 	},
 	setupPhysicsDebugNode:function () {
@@ -201,10 +201,10 @@ var GameplayLayer = cc.LayerColor.extend({
 		if(!this.isGameOver)
 		{
 			// restart game
-			/*if(e == cc.KEY.r)
+			if(e == cc.KEY.r)
 			{
 				this.restartGame();
-			}*/
+			}
 
 			// update trideroche key control
 			this.trideroche.onKeyDown(e);
@@ -230,17 +230,27 @@ var GameplayLayer = cc.LayerColor.extend({
 	onExit:function () {
 		this._super();
 		global.unloadSpriteFrames(res_humanSpriteSheetPlist);
-
-		this.unscheduleUpdate();
 	},
 	restartGame:function () {
 		// reset states
 		this.isGameOver = false;
 
-		// TODO: remove all objects here
+		// unschedule
+		this.unscheduleUpdate();
+		this.unschedule(this._maintainTriderocheHead);
+
+		// remove all objects here
+		for(var i=0; i<this._groundShapes.length; i++)
+			this.space.removeStaticShape(this._groundShapes[i]);
+		this._groundShapes = [];
+		// destroy trideroche
+		this.trideroche.destroy();
+
+		// remove all sprite nodes
+		this.removeAllChildren(true);
 
 		// re-init
-		this.init(cc.c4b(0,0,0,0));
+		this.initWithLevel(cc.c4b(0,0,0,0), profile.selectedLevel);
 	},
 	_maintainTriderocheHead:function (dt) {
 		this.trideroche.maintainHead();

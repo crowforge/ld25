@@ -37,6 +37,14 @@ function Trideroche (space, parentNode, pos) {
 	// for convenience counting of legs that're up
 	this._countLegsUp = 3;	// we will spawn it in the air
 
+	// managed list to be removed
+	// constraints
+	this._constraints = [];
+	// shapes
+	this._shapes = [];
+	// bodies
+	this._bodies = [];
+
 	// -- end of internal variables -- //
 
 	// -- public members -- //
@@ -134,34 +142,60 @@ Trideroche.prototype.addTrideroche = function(p){
 
 	// joint
 	// body & head
-	this.space.addConstraint(new cp.GrooveJoint(this.body, this.head, cp.v(0,0), cp.v(0, 10), cp.v(0,0)));
-	this.space.addConstraint(new cp.DampedSpring(this.body, this.head, cp.v(0,0), cp.v(0,0), 50, 300, 10));
+	var constraint = null;
+	constraint = new cp.GrooveJoint(this.body, this.head, cp.v(0,0), cp.v(0, 10), cp.v(0,0));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
+
+	constraint = new cp.DampedSpring(this.body, this.head, cp.v(0,0), cp.v(0,0), 50, 300, 10);
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
 
 	// body & base front leg
-	this.space.addConstraint(new cp.PivotJoint(this.body, this.frontBaseLeg, cp.v(2.5,-10), cp.v(-25,1)));
+	constraint = new cp.PivotJoint(this.body, this.frontBaseLeg, cp.v(2.5,-10), cp.v(-25,1));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
 	//this.space.addConstraint(new cp.RotaryLimitJoint(this.body, this.frontBaseLeg, -Math.PI/4, Math.PI/4));
 	// base front leg & rear front leg
-	this.space.addConstraint(new cp.PivotJoint(this.frontBaseLeg, this.frontRearLeg, cp.v(25,1), cp.v(-60, 1.5)));
+	constraint = new cp.PivotJoint(this.frontBaseLeg, this.frontRearLeg, cp.v(25,1), cp.v(-60, 1.5));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
 
 	// body & base back leg
-	this.space.addConstraint(new cp.PivotJoint(this.body, this.backBaseLeg, cp.v(-2.5,-10), cp.v(25, 1)));
+	constraint = new cp.PivotJoint(this.body, this.backBaseLeg, cp.v(-2.5,-10), cp.v(25, 1));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
 	//this.space.addConstraint(new cp.RotaryLimitJoint(this.body, this.backBaseLeg, -Math.PI/4, Math.PI/4));
 	// base back leg & rear back leg
-	this.space.addConstraint(new cp.PivotJoint(this.backBaseLeg, this.backRearLeg, cp.v(-25,1), cp.v(60, 1.5)));
+	constraint = new cp.PivotJoint(this.backBaseLeg, this.backRearLeg, cp.v(-25,1), cp.v(60, 1.5));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
 	//this.space.addConstraint(new cp.RotaryLimitJoint(this.backBaseLeg, this.backRearLeg, -Math.PI/4, Math.PI/4));
 
 	// body & base middle leg
-	this.space.addConstraint(new cp.PivotJoint(this.body, this.middleBaseLeg, cp.v(0,-10), cp.v(25,1)));
+	constraint = new cp.PivotJoint(this.body, this.middleBaseLeg, cp.v(0,-10), cp.v(25,1));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
 	//this.space.addConstraint(new cp.RotaryLimitJoint(this.body, this.middleBaseLeg, -Math.PI/4, Math.PI/4));
 	// base middle leg & rear middle leg
-	this.space.addConstraint(new cp.PivotJoint(this.middleBaseLeg, this.middleRearLeg, cp.v(-25,1), cp.v(60, 1.5)));
+	constraint = new cp.PivotJoint(this.middleBaseLeg, this.middleRearLeg, cp.v(-25,1), cp.v(60, 1.5));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
 	//this.space.addConstraint(new cp.RotaryLimitJoint(this.middleBaseLeg, this.middleRearLeg, -Math.PI/4, Math.PI/4));
 
 	// associate with foot
 	// front
-	this.space.addConstraint(new cp.PivotJoint(this.frontRearLeg, this.frontFoot, cp.v(60, 0), cp.v(0,2.5)));
-	this.space.addConstraint(new cp.PivotJoint(this.backRearLeg, this.backFoot, cp.v(-60, 0), cp.v(0,2.5)));
-	this.space.addConstraint(new cp.PivotJoint(this.middleRearLeg, this.middleFoot, cp.v(-60, 0), cp.v(0,2.5)));
+	constraint = new cp.PivotJoint(this.frontRearLeg, this.frontFoot, cp.v(60, 0), cp.v(0,2.5));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
+
+	constraint = new cp.PivotJoint(this.backRearLeg, this.backFoot, cp.v(-60, 0), cp.v(0,2.5));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
+
+	constraint = new cp.PivotJoint(this.middleRearLeg, this.middleFoot, cp.v(-60, 0), cp.v(0,2.5));
+	this.space.addConstraint(constraint);
+	this._constraints.push(constraint);
 }
 Trideroche.prototype.setUpCollisionHandler = function() {
 	this.space.addCollisionHandler(COLLISION_GROUP.TRIDEROCHE_FOOT, COLLISION_GROUP.GROUND,
@@ -356,12 +390,14 @@ Trideroche.prototype._addTrideroche_head = function (cpV){
 	var body = new cp.Body(mass, cp.momentForCircle(mass, 0, radius, cp.v(0,0)));
 	body.setPos(cpV);
 	this.space.addBody(body);
+	this._bodies.push(body);
 
 	var shape = new cp.CircleShape(body, radius, cp.v(0,0));
 	shape.setElasticity(0.1);
 	shape.setFriction(0.8);
 	shape.group = COLLISION_GROUP.TRIDEROCHE;
 	this.space.addShape(shape);
+	this._shapes.push(shape);
 
 	return body;
 }
@@ -373,12 +409,14 @@ Trideroche.prototype._addTrideroche_body = function (cpV) {
 	var body = new cp.Body(mass, cp.momentForBox(mass, width, height));
 	body.setPos(cpV);
 	this.space.addBody(body);
+	this._bodies.push(body);
 
 	var shape = new cp.BoxShape(body, width, height);
 	shape.setElasticity(0);
 	shape.setFriction(0.4);
 	shape.group = COLLISION_GROUP.TRIDEROCHE;
 	this.space.addShape(shape);
+	this._shapes.push(shape);
 
 	return body;
 }
@@ -390,12 +428,14 @@ Trideroche.prototype._addTrideroche_baseleg = function (cpV) {
 	var body = new cp.Body(mass, cp.momentForBox(mass, width, height));
 	body.setPos(cpV);
 	this.space.addBody(body);
+	this._bodies.push(body);
 
 	var shape = new cp.BoxShape(body, width, height);
 	shape.setElasticity(0);
 	shape.setFriction(0.4);
 	shape.group = COLLISION_GROUP.TRIDEROCHE;
 	this.space.addShape(shape);
+	this._shapes.push(shape);
 
 	return body;
 }
@@ -428,12 +468,14 @@ Trideroche.prototype._addTrideroche_rearleg = function (cpV, isFlipVerts) {
 	var body = new cp.Body(mass, cp.momentForPoly(mass, verts, cp.v(-60 * flip,0)));
 	body.setPos(cpV);
 	this.space.addBody(body);
+	this._bodies.push(body);
 
 	var shape = new cp.PolyShape(body, verts, cp.v(-60 * flip,0));
 	shape.setElasticity(0.4);
 	shape.setFriction(0.4);
 	shape.group = COLLISION_GROUP.TRIDEROCHE;
 	this.space.addShape(shape);
+	this._shapes.push(shape);
 
 	return body;
 }
@@ -445,6 +487,7 @@ Trideroche.prototype._addFoot = function(cpV) {
 	var body = new cp.Body(mass, cp.momentForBox(mass, width, height));
 	body.setPos(cpV);
 	this.space.addBody(body);
+	this._bodies.push(body);
 
 	var shape = new cp.BoxShape(body, width, height);
 	shape.setElasticity(0);
@@ -452,6 +495,7 @@ Trideroche.prototype._addFoot = function(cpV) {
 	shape.group = COLLISION_GROUP.TRIDEROCHE;
 	shape.setCollisionType(COLLISION_GROUP.TRIDEROCHE_FOOT);
 	this.space.addShape(shape);
+	this._shapes.push(shape);
 
 	return body;
 }
@@ -508,10 +552,28 @@ Trideroche.prototype.destroy = function()
 	this.space.removeCollisionHandler(COLLISION_GROUP.TRIDEROCHE, COLLISION_GROUP.GROUND);
 
 	// remove constraints
+	for(var i=0; i<this._constraints.length; i++)
+	{
+		this.space.removeConstraint(this._constraints[i]);
+	}
+	this._constraints = null;
 
 	// remove shapes
+	for(var i=0; i<this._shapes.length; i++)
+	{
+		this.space.removeShape(this._shapes[i]);
+	}
+	this._shapes = null;
 
 	// remove bodies
+	for(var i=0; i<this._bodies.length; i++)
+	{
+		this.space.removeBody(this._bodies[i]);
+	}
+	this._bodies = null;
+
+	// remove sprite nodes
+	// TODO: Add removing sprite nodes here ...
 }
 
 
