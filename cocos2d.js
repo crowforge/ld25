@@ -44,7 +44,8 @@
             'src/gameplayScene.js',
             'src/cpSprite.js',
             'src/trideroche.js',
-            'src/playerProfile.js'
+            'src/playerProfile.js',
+            'src/level.js'
         ]
     };
     window.addEventListener('DOMContentLoaded', function () {

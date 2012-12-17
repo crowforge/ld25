@@ -17,6 +17,8 @@ var GameplayLayer = cc.LayerColor.extend({
 	// objects
 	trideroche:null,
 	camPos:null,
+	groundShapes:[],
+	levelInfo:null,
 
 	_debugNode:null,
 	_humanBatchNode:null,
@@ -41,7 +43,7 @@ var GameplayLayer = cc.LayerColor.extend({
 		this.setupPhysicsDebugNode();
 
 		// create trideroche & add into the physics and scene
-		this.trideroche = new Trideroche(this.space, this, cc.p(winSize.width/2, winSize.height/2.5));
+		this.trideroche = new Trideroche(this.space, this, cc.p(130, winSize.height/2.5));
 		this.camPos = cc.p(this.trideroche.body.getPos().x, this.trideroche.body.getPos().y);
 
 		// enable mouse and keyboard
@@ -59,43 +61,28 @@ var GameplayLayer = cc.LayerColor.extend({
 	setupPhysicsWithLevel:function(level) {
 		this.space = new cp.Space();
 		this.space.gravity = cp.v(0, -200);
-		this.space.iterations = 15;
+		this.space.iterations = 20;
 
 		// add ground
 		var winSize = cc.Director.getInstance().getWinSize();
 		var staticBody = this.space.staticBody;
-		//var ground = new cp.SegmentShape(staticBody, cp.v(0,10), cp.v(winSize.width-300,10), 5);
-		//var ground2 = new cp.SegmentShape(staticBody, cp.v(winSize.width-250,40), cp.v(winSize.width,40),5);
 
 		global.log("level = " + level);
-		var verts1 = [
-			winSize.width-300,10,
-			winSize.width-300,-50,
-			0,-50,
-			0,10
-		];
+		this.levelInfo = levels[level-1];
+		for(var i=0; i<this.levelInfo.grounds.length; i++)
+		{
+			var ground = new cp.PolyShape(staticBody, this.levelInfo.grounds[i].verts, cp.v(0,0));
 
-		var verts2 = [
-			winSize.width,10,
-			winSize.width,-50,
-			winSize.width-250,-50,
-			winSize.width-250,10
-		];
+			ground.setElasticity(0.5);
+			ground.setFriction(1);
+			ground.shape = COLLISION_GROUP.GROUND;
+			ground.setCollisionType(COLLISION_GROUP.GROUND);
 
-		var ground = new cp.PolyShape(staticBody, verts1, cp.v(0,0));
-		var ground2 = new cp.PolyShape(staticBody, verts2, cp.v(0,0));
+			this.space.addStaticShape(ground);
 
-		ground.setElasticity(0.5);
-		ground.setFriction(1);
-		ground.shape = COLLISION_GROUP.GROUND;
-		ground.setCollisionType(COLLISION_GROUP.GROUND);
-
-		ground2.setElasticity(0.5);
-		ground2.setFriction(1);
-		ground2.shape = COLLISION_GROUP.GROUND;
-		ground2.setCollisionType(COLLISION_GROUP.GROUND);
-		this.space.addStaticShape(ground);
-		this.space.addStaticShape(ground2);
+			// save ground into list
+			this.groundShapes.push(ground);
+		}
 	},
 	setupPhysicsDebugNode:function () {
 		this._debugNode = cc.PhysicsDebugNode.create(this.space);
@@ -188,7 +175,10 @@ var GameplayLayer = cc.LayerColor.extend({
 			// camera to follow trideroche
 			this.camPos.x = gmath.lerp(this.camPos.x, this.trideroche.body.getPos().x, GameplaySetting.CAMERA_SPEED);
 			this.camPos.y = gmath.lerp(this.camPos.y, this.trideroche.body.getPos().y, GameplaySetting.CAMERA_SPEED);
-			this.setPosition(cc.p(-this.camPos.x + winSize.width/2, -this.camPos.y + winSize.height/1.6));
+			// bound camPos
+			if(this.camPos.x - winSize.width/2 > 0 && this.camPos.x + winSize.width /2 * this.levelInfo.numScreens < winSize.width * this.levelInfo.numScreens)
+				this.setPositionX(-this.camPos.x + winSize.width/2);
+			this.setPositionY(-this.camPos.y + winSize.height/1.6);
 		}
 
 		// Sprites node
