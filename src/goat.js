@@ -30,8 +30,9 @@ var Goat = CPSprite.extend({
 		}
 		var animate = cc.Animate.create(cc.Animation.create(frames, 1/7.0));
 		this._normalAnimAction = cc.RepeatForever.create(animate);
+		this.setVisible(false);	// just solve problem
 
-		this.playNormalAnimation();
+		//this.playNormalAnimation();
 
 		return true;
 	},
