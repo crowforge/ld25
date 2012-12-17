@@ -163,11 +163,11 @@ var GameplayLayer = cc.LayerColor.extend({
 		return body;
 	},
 	update:function (dt) {
-		// update chipmunk physics
-		this.space.step(dt);
-
 		if(!this.isGameOver)
 		{
+			// update chipmunk physics
+			this.space.step(dt);
+
 			var winSize = cc.Director.getInstance().getWinSize();
 
 			//this.trideroche.resetForces();
@@ -179,6 +179,18 @@ var GameplayLayer = cc.LayerColor.extend({
 			if(this.camPos.x - winSize.width/2 > 0 && this.camPos.x + winSize.width /2 * this.levelInfo.numScreens < winSize.width * this.levelInfo.numScreens)
 				this.setPositionX(-this.camPos.x + winSize.width/2);
 			this.setPositionY(-this.camPos.y + winSize.height/1.6);
+
+			// check for game over (game over condition)
+			if(this.trideroche.head.getPos().y <= -1000)
+			{
+				this.isGameOver = true;
+
+				// delay a bit then restart the game
+				this.runAction(cc.Sequence.create(
+					cc.DelayTime.create(0.5),
+					cc.CallFunc.create(this.restartGame, this))
+				);
+			}
 		}
 
 		// Sprites node
@@ -253,7 +265,9 @@ var GameplayLayer = cc.LayerColor.extend({
 		this.initWithLevel(cc.c4b(0,0,0,0), profile.selectedLevel);
 	},
 	_maintainTriderocheHead:function (dt) {
-		this.trideroche.maintainHead();
+		// not apply the force anymore if it will be dies at the ends
+		if(this.trideroche.head.getPos().y > -100)
+			this.trideroche.maintainHead();
 	}
 });
 
