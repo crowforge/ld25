@@ -55,7 +55,7 @@ var CreditsLayer = cc.LayerColor.extend({
 		this.addChild(this._coderHeaderLabel);
 		upperY = this._coderHeaderLabel.getPositionY() - this._coderHeaderLabel.getContentSize().height/2;
 
-		this._coderNameLabel = cc.LabelTTF.create("Wasin Thonkaew", "AtariClassic",  18);
+		this._coderNameLabel = cc.LabelTTF.create("@haxpor", "AtariClassic",  18);
 		this._coderNameLabel.setPosition(cc.p(winSize.width/2, upperY - spacing/2 - this._coderNameLabel.getContentSize().height/2));
 		this.addChild(this._coderNameLabel);
 		upperY = this._coderNameLabel.getPositionY() - this._coderNameLabel.getContentSize().height/2;
@@ -67,7 +67,7 @@ var CreditsLayer = cc.LayerColor.extend({
 		this.addChild(this._artistHeaderLabel);
 		upperY = this._artistHeaderLabel.getPositionY() - this._artistHeaderLabel.getContentSize().height/2;
 
-		this._artistNameLabel = cc.LabelTTF.create("Suebphatt Leelertphong", "AtariClassic", 18);
+		this._artistNameLabel = cc.LabelTTF.create("@dodgebulletsss", "AtariClassic", 18);
 		this._artistNameLabel.setPosition(cc.p(winSize.width/2, upperY - spacing/2 - this._artistNameLabel.getContentSize().height/2));
 		this.addChild(this._artistNameLabel);
 		upperY = this._artistNameLabel.getPositionY() - this._artistNameLabel.getContentSize().height/2;
@@ -90,7 +90,7 @@ var CreditsLayer = cc.LayerColor.extend({
 		this.addChild(this._soundNameLabel);
 		upperY = this._soundNameLabel.getPositionY() - this._soundNameLabel.getContentSize().height/2;
 
-		this._soundLinkLabel = cc.LabelTTF.create("no (virtual) goats were harmed in the game", "AtariClassic", 12);
+		this._soundLinkLabel = cc.LabelTTF.create("no (virtual) goats were harmed in this game", "AtariClassic", 12);
 		this._soundLinkLabel.setPosition(cc.p(winSize.width/2, upperY - spacing/2 - this._soundLinkLabel.getContentSize().height/2));
 		this._soundLinkLabel.setColor(cc.c3b(200,200,200));
 		this.addChild(this._soundLinkLabel);
@@ -108,7 +108,7 @@ var CreditsLayer = cc.LayerColor.extend({
 		this.addChild(this._basementDojoWebsiteLabel);
 		upperY = this._basementDojoWebsiteLabel.getPositionY() - this._basementDojoWebsiteLabel.getContentSize().height/2;
 
-		this._basementDojoEmailLabel = cc.LabelTTF.create("contact@basementdojo.com", "AtariClassic", 16);
+		this._basementDojoEmailLabel = cc.LabelTTF.create("@basementdojo", "AtariClassic", 16);
 		this._basementDojoEmailLabel.setColor(cc.c3b(200,200,200));
 		this._basementDojoEmailLabel.setPosition(cc.p(winSize.width/2, upperY - spacing/2 - this._basementDojoEmailLabel.getContentSize().height/2));
 		this.addChild(this._basementDojoEmailLabel);
