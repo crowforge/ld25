@@ -204,6 +204,12 @@ Trideroche.prototype.setUpCollisionHandler = function() {
 		this._footAndGroundPostCollisionHandler.bind(this),
 		this._footAndGroundSeparateCollisionHandler.bind(this)
 		);
+	this.space.addCollisionHandler(COLLISION_GROUP.TRIDEROCHE_FOOT, COLLISION_GROUP.GOAT,
+		null,
+		null,
+		this._footAndGoatPostCollisionHandler.bind(this),
+		null
+		);
 }
 Trideroche.prototype.update = function(dt) {
 	// update position of labels
@@ -545,11 +551,17 @@ Trideroche.prototype._footAndGroundSeparateCollisionHandler = function(arbiter, 
 		this._isMiddleLegUpStartedToSeparate = true;
 	}
 }
+Trideroche.prototype._footAndGoatPostCollisionHandler = function(arbiter, space) {
+	// clear the current level
+	// notify back to gamePlayScene
+	this.parentNode.notifyGoatIsKicked();
+}
 // TODO: Add this stuff to completely destroy the object properly
 Trideroche.prototype.destroy = function()
 {
 	// remove handlers
-	this.space.removeCollisionHandler(COLLISION_GROUP.TRIDEROCHE, COLLISION_GROUP.GROUND);
+	this.space.removeCollisionHandler(COLLISION_GROUP.TRIDEROCHE_FOOT, COLLISION_GROUP.GROUND);
+	this.space.removeCollisionHandler(COLLISION_GROUP.TRIDEROCHE_FOOT, COLLISION_GROUP.GOAT);
 
 	// remove constraints
 	for(var i=0; i<this._constraints.length; i++)

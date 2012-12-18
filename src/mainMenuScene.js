@@ -5,6 +5,8 @@ var MainMenuText = {
 	CREDIT_SELECT: "- Credits -"
 }
 
+var mainBGM = null;
+
 var MainMenuLayer = cc.LayerColor.extend({
 	_gameLogo: null,
 	_pressX: null,
@@ -57,11 +59,6 @@ var MainMenuLayer = cc.LayerColor.extend({
         	// play the game
         	if(this._currentChoice == 1)
         	{
-        		// stop current playing bgm
-	        	//global.stopBackgroundMusic(true);
-	        	// play stage theme
-	        	//global.playBackgroundMusic(res_stageThemeBGM, true);
-
 	            // transition to game session scene
 	            cc.Director.getInstance().replaceScene(new GameplayScene());
         	}
@@ -117,9 +114,15 @@ var MainMenuScene = cc.Scene.extend({
 	onEnter:function() {
 		this._super();
 
-		// play bgm (if not play)
-		//if(!global.isBackgroundMusicPlaying())
-        //	global.playBackgroundMusic(res_mainThemeBGM, true);
+		// play music here
+		if(mainBGM == null)
+		{
+			mainBGM = new buzz.sound(res_music, { 
+				formats: ["ogg", "mp3"],
+				loop: true
+			});
+			mainBGM.play();
+		}
 
 		var layer = new MainMenuLayer();
 		layer.init(cc.c4b(0,0,0,0));

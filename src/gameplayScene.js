@@ -14,6 +14,7 @@ var GameplayLayer = cc.LayerColor.extend({
 
 	// flags & info
 	isGameOver:false,
+	isFirstStart:true,
 	timeRecord:-1,	// in secs
 	timeRecordLabel:null,
 
@@ -25,6 +26,7 @@ var GameplayLayer = cc.LayerColor.extend({
 	_debugNode:null,
 	_goatSprite:null,	// list of goat sprites
 	_groundShapes:[],
+	_isGoatIsKicked:false,
 
 	initWithLevel:function(color, level) {
 		if(!this.init(color))
@@ -187,6 +189,23 @@ var GameplayLayer = cc.LayerColor.extend({
 				this.setPositionX(-this.camPos.x + winSize.width/2);
 			this.setPositionY(-this.camPos.y + winSize.height/1.6);
 
+			// show hint label for the first time
+			if(this.isFirstStart)
+			{
+				if(profile.selectedLevel == 1)
+				{
+					this.addAndFadeAwayHintLabel("#1 Kick-butt that (virtual) goat!");
+				}
+				else if(profile.selectedLevel == 2)
+				{
+					this.addAndFadeAwayHintLabel("#2 Beware the hole ...");
+				}
+				else if(profile.selectedLevel == 3)
+				{
+					this.addAndFadeAwayHintLabel("#3 A bit more, but totally easy.");
+				}
+			}
+
 			// update position of timerecord label
 			this.timeRecordLabel.setPosition(cc.p(this.trideroche.head.getPos().x, 
 				this.trideroche.head.getPos().y + 30));
@@ -194,7 +213,7 @@ var GameplayLayer = cc.LayerColor.extend({
 			// update goat
 			this._goatSprite.update();
 			// check for goats to be fell down the platform (that's our task)
-			if(this._goatSprite.getPositionY() <= -200)
+			if(this._isGoatIsKicked)
 			{
 				this._goatSprite.destroy();
 				this._goatSprite = null;	// null it out, so we won't twice destroy it
@@ -208,7 +227,8 @@ var GameplayLayer = cc.LayerColor.extend({
 				// win!
 				this.isGameOver = true;
 				// add cleared layer on-top
-				this.addChild(ClearedLayer.create(this.timeRecordLabel.getString()));
+				this.addChild(ClearedLayer.create(
+					this.timeRecordLabel.getString().substr(4,5)));
 			}
 
 			// check for game over (game over condition)
@@ -223,6 +243,21 @@ var GameplayLayer = cc.LayerColor.extend({
 				);
 			}
 		}
+	},
+	addAndFadeAwayHintLabel:function (string) {
+		// show objective hint, then fade away
+		var hintLabel = cc.LabelTTF.create(string, "AtariClassic", 16);
+		hintLabel.setColor(cc.c3b(255,255,0));
+		hintLabel.setPosition(cc.p(this.trideroche.head.getPos().x + 300, 
+			this.trideroche.head.getPos().y + 30));
+		this.addChild(hintLabel);
+		// blink then fade away
+		var blink = cc.Blink.create(2.0, 3);
+		var fade = cc.FadeTo.create(5.0, 0);
+		var sequence = cc.Sequence.create(blink, fade);
+		hintLabel.runAction(sequence);
+
+		this.isFirstStart = false;
 	},
 	// -- keyboard
 	onKeyUp:function (e) {
@@ -239,6 +274,7 @@ var GameplayLayer = cc.LayerColor.extend({
 			{
 				this.restartGame();
 			}
+
 
 			// update trideroche key control
 			this.trideroche.onKeyDown(e);
@@ -268,6 +304,8 @@ var GameplayLayer = cc.LayerColor.extend({
 	restartGame:function () {
 		// reset states
 		this.isGameOver = false;
+		this._isGoatIsKicked = false;
+		this.isFirstStart = true;
 
 		this.timeRecord = 0;
 
@@ -318,7 +356,10 @@ var GameplayLayer = cc.LayerColor.extend({
 		if(secs < 10)
 			strSecs = "0" + secs;
 
-		return strMinutes +  ":" + strSecs;
+		return "[r] " + strMinutes +  ":" + strSecs;
+	},
+	notifyGoatIsKicked:function () {
+		this._isGoatIsKicked = true;
 	}
 });
 

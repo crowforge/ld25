@@ -3,6 +3,7 @@ var res_gameLogo = "res/trois_logo.png";
 var res_creditsLogo = "res/logo-bw.png";
 var res_humanSpriteSheetPlist = "res/mainCharacter.plist";
 var res_humanSpriteSheet = "res/mainCharacter.png";
+var res_music = "res/music";
 
 var g_ressources = [
     //image
@@ -19,6 +20,7 @@ var g_ressources = [
     //tmx
 
     //bgm
+    {type: "bgm", src: res_music},
 
     //effect
 ];

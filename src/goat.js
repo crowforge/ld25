@@ -23,13 +23,13 @@ var Goat = CPSprite.extend({
 		this.shape.setCollisionType(COLLISION_GROUP.GOAT);
 
 		// set up animations
-		var frames = new Array();
+		/*var frames = new Array();
 		for(var i=0; i<4; i++)
 		{
 			frames.push(global.getSpriteFrame("main_char_walk" + (i+1) + ".png"));
 		}
 		var animate = cc.Animate.create(cc.Animation.create(frames, 1/7.0));
-		this._normalAnimAction = cc.RepeatForever.create(animate);
+		this._normalAnimAction = cc.RepeatForever.create(animate);*/
 		this.setVisible(false);	// just solve problem
 
 		//this.playNormalAnimation();

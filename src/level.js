@@ -50,8 +50,7 @@ levels = [
 // 2
 {
 	numScreens: 1,
-	goatPosition: {x: 210, y: 20},
-	//goatPosition: {x: LevelSetting.SCREEN_WIDTH - 50, y: 20},
+	goatPosition: {x: LevelSetting.SCREEN_WIDTH - 50, y: 20},
 	grounds: [
 		{
 			// left blocker (off-screen)
@@ -96,7 +95,7 @@ levels = [
 // 3
 {
 	numScreens: 1,
-	goatPosition: {x: 190, y: 20},
+	goatPosition: {x: LevelSetting.SCREEN_WIDTH - 50, y: 20},
 	grounds: [
 		{
 			// left blocker (off-screen)

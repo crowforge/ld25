@@ -90,7 +90,7 @@ var CreditsLayer = cc.LayerColor.extend({
 		this.addChild(this._soundNameLabel);
 		upperY = this._soundNameLabel.getPositionY() - this._soundNameLabel.getContentSize().height/2;
 
-		this._soundLinkLabel = cc.LabelTTF.create("no goats were harmed in the game", "AtariClassic", 12);
+		this._soundLinkLabel = cc.LabelTTF.create("no (virtual) goats were harmed in the game", "AtariClassic", 12);
 		this._soundLinkLabel.setPosition(cc.p(winSize.width/2, upperY - spacing/2 - this._soundLinkLabel.getContentSize().height/2));
 		this._soundLinkLabel.setColor(cc.c3b(200,200,200));
 		this.addChild(this._soundLinkLabel);
