@@ -194,7 +194,7 @@ var GameplayLayer = cc.LayerColor.extend({
 			{
 				if(profile.selectedLevel == 1)
 				{
-					this.addAndFadeAwayHintLabel("#1 Kick-butt that (virtual) goat!");
+					this.addAndFadeAwayHintLabel("#1 Hold 'Q' -> 'A' or 'Z'.\nThe less is similar.");
 				}
 				else if(profile.selectedLevel == 2)
 				{
