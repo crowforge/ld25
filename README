@@ -1,8 +1,29 @@
-LD25 | ...
+Ludum Dare 25 Jam Event
 
-A game made for Ludum Dare 25 | 14-17 December 2012.
+"Trios"
 
-More info later ...
+You control "Trios" to its captured prey, a (virtual) goat. You're already in your domain. But the path to each of your prey is kind da difficult to your clumsy move. 
+
+Just kick-butt it, next prey is awaiting. 
+
+There's 5 levels currently.
+
+- Control keys -
+Each column maps to each leg of Trios. 
+Q, W, E -> Hold to keep pullin up individual leg of robot (in y-axis only) 
+A, S, D -> Move individual leg to the right (in positive x-axis) 
+Z, X, C -> Same as A,S,D but in opposite direction 
+R -> If you hopeless, you will need this. 
+
+- Rules - 
+1. At least 1 foot must touch the ground in order to pull up another. 
+2. To move forward, you have to "pull" up target leg first, then while it's in the air you "move" it to the right or left. 
+3. From 2, that means we cannot just move forward without "pull" up legs. 
+4. Enjoy!
+
+See more information at
+http://www.ludumdare.com/compo/ludum-dare-25/?action=preview&uid=647
+http://basementdojo.com/ld25/
 
 Wasin
 Indie Game Developer
