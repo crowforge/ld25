@@ -57,7 +57,6 @@ var GameplayLayer = cc.LayerColor.extend({
 		this.camPos = cc.p(this.trideroche.body.getPos().x, this.trideroche.body.getPos().y);
 
 		// enable mouse and keyboard
-		this.setMouseEnabled(true);
 		this.setKeyboardEnabled(true);
 		// create an update function
 		this.scheduleUpdate();
@@ -287,19 +286,6 @@ var GameplayLayer = cc.LayerColor.extend({
 			// update trideroche key control
 			this.trideroche.onKeyDown(e);
 		}
-	},
-	// -- mouse
-	onMouseEntered:function (e) {
-		return true;
-	},
-	onMouseMoved:function (e) {
-		return true;
-	},
-	onMouseDragged:function (e) {
-		return true;
-	},
-	onMouseDown: function (e) {
-		return true;
 	},
 	onEnter:function () {
 		this._super();
