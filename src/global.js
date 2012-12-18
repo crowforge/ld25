@@ -1,7 +1,7 @@
 // Global settings and Functions
 var global = {
 	// Settings
-	debug:1,
+	debug:0,
 	music:1,
 	sfx:1,
 	showHint:1,

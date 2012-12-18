@@ -52,8 +52,6 @@ var ClearedLayer = cc.LayerColor.extend({
 		this.addChild(restartGameLabel);
 
 		this.setKeyboardEnabled(true);
-
-		var menu = cc.Menu.create()
 	},
 	onKeyUp:function (e) {
 		// nothing here
@@ -65,6 +63,8 @@ var ClearedLayer = cc.LayerColor.extend({
 			{
 				// set selected level back to 1
 				profile.selectedLevel = 1;
+				// destroy all objects first
+				this.getParent().destroyAllObjects();
 
 				// go back to main menu
 				cc.Director.getInstance().replaceScene(new MainMenuScene());

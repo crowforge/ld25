@@ -198,11 +198,19 @@ var GameplayLayer = cc.LayerColor.extend({
 				}
 				else if(profile.selectedLevel == 2)
 				{
-					this.addAndFadeAwayHintLabel("#2 Beware the hole ...");
+					this.addAndFadeAwayHintLabel("#2 Beware the hole ..., keep pulling.");
 				}
 				else if(profile.selectedLevel == 3)
 				{
 					this.addAndFadeAwayHintLabel("#3 A bit more, but totally easy.");
+				}
+				else if(profile.selectedLevel == 4)
+				{
+					this.addAndFadeAwayHintLabel("#4 Wider hole.\nOne falls down, other twos hold on.")
+				}
+				else if(profile.selectedLevel == 5)
+				{
+					this.addAndFadeAwayHintLabel("#5 Step up, you know what to do.")
 				}
 			}
 
@@ -325,10 +333,33 @@ var GameplayLayer = cc.LayerColor.extend({
 		this.removeAllChildren(true);
 		// remove sprite from the scene and release physics related objects (if goat is still alive)
 		if(this._goatSprite != null)
+		{
 			this._goatSprite.destroy();
+			this._goatSprite = null;
+		}
 
 		// re-init
 		this.initWithLevel(cc.c4b(0,0,0,0), profile.selectedLevel);
+	},
+	destroyAllObjects:function() {
+		// unschedule
+		this.unscheduleUpdate();
+		this.unschedule(this._maintainTriderocheHead);
+		this.unschedule(this._updateTimeRecord);
+
+		// remove all objects here
+		for(var i=0; i<this._groundShapes.length; i++)
+			this.space.removeStaticShape(this._groundShapes[i]);
+		this._groundShapes = [];
+		// destroy trideroche
+		this.trideroche.destroy();
+
+		// remove sprite from the scene and release physics related objects (if goat is still alive)
+		if(this._goatSprite != null)
+		{
+			this._goatSprite.destroy();
+			this._goatSprite = null;
+		}
 	},
 	_maintainTriderocheHead:function (dt) {
 		// not apply the force anymore if it will be dies at the ends
