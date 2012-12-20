@@ -64,7 +64,7 @@ var ClearedLayer = cc.LayerColor.extend({
 				// set selected level back to 1
 				profile.selectedLevel = 1;
 				// destroy all objects first
-				this.getParent().destroyAllObjects();
+				this.getParent().mainGameLayer.destroyAllObjects();
 
 				// go back to main menu
 				cc.Director.getInstance().replaceScene(new MainMenuScene());
@@ -72,7 +72,8 @@ var ClearedLayer = cc.LayerColor.extend({
 			else
 			{
 				// play next game (the level is already updated)
-				this.getParent().restartGame();
+				// note: access the first layer of the parent node
+				this.getParent().mainGameLayer.restartGame();
 			}
 		}
 	}

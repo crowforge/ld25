@@ -9,6 +9,11 @@ var GameplaySetting = {
 	CAMERA_SPEED:0.15
 }
 
+var Tag = {
+	GAMEPLAY_LAYER: 1,
+	CLEARED_LAYER: 2
+}
+
 var GameplayLayer = cc.LayerColor.extend({
 	space:null,
 
@@ -42,6 +47,7 @@ var GameplayLayer = cc.LayerColor.extend({
 
 		// init the less
 		this.isGameOver = false;
+		this._groundShapes = [];
 		// add time record label
 		this.timeRecordLabel = cc.LabelTTF.create("00:00", "AtariClassic", 15);
 		this.timeRecordLabel.setPosition(cc.p(winSize.width - this.timeRecordLabel.getContentSize().width, winSize.height-20));
@@ -93,6 +99,7 @@ var GameplayLayer = cc.LayerColor.extend({
 			// save ground into list
 			this._groundShapes.push(ground);
 		}
+		global.log("set up with " + this.levelInfo.grounds.length);
 
 		// add goat
 		this.addGoat(cc.p(this.levelInfo.goatPosition.x, this.levelInfo.goatPosition.y));
@@ -233,9 +240,9 @@ var GameplayLayer = cc.LayerColor.extend({
 
 				// win!
 				this.isGameOver = true;
-				// add cleared layer on-top
-				this.addChild(ClearedLayer.create(
-					this.timeRecordLabel.getString().substr(4,5)));
+				// add cleared layer on-top (use scene node to add a new layer node)
+				this.getParent().addChild(ClearedLayer.create(
+					this.timeRecordLabel.getString().substr(4,5)), 10, Tag.CLEARED_LAYER);
 			}
 
 			// check for game over (game over condition)
@@ -311,12 +318,15 @@ var GameplayLayer = cc.LayerColor.extend({
 		// remove all objects here
 		for(var i=0; i<this._groundShapes.length; i++)
 			this.space.removeStaticShape(this._groundShapes[i]);
-		this._groundShapes = [];
+		global.log("[r] remove with " + this._groundShapes.length);
+		this._groundShapes = null;
 		// destroy trideroche
 		this.trideroche.destroy();
 
-		// remove all sprite nodes
+		// remove all nodes (under the current layer node)
 		this.removeAllChildren(true);
+		// remove cleared node (under the current scene node)
+		this.getParent().removeChildByTag(Tag.CLEARED_LAYER, true);
 		// remove sprite from the scene and release physics related objects (if goat is still alive)
 		if(this._goatSprite != null)
 		{
@@ -336,9 +346,15 @@ var GameplayLayer = cc.LayerColor.extend({
 		// remove all objects here
 		for(var i=0; i<this._groundShapes.length; i++)
 			this.space.removeStaticShape(this._groundShapes[i]);
-		this._groundShapes = [];
+		global.log("remove with " + this._groundShapes.length);
+		this._groundShapes = null;
 		// destroy trideroche
 		this.trideroche.destroy();
+
+		// remove all nodes (under the current layer node)
+		this.removeAllChildren(true);
+		// remove cleared node (under the current scene node)
+		this.getParent().removeChildByTag(Tag.CLEARED_LAYER, true);
 
 		// remove sprite from the scene and release physics related objects (if goat is still alive)
 		if(this._goatSprite != null)
@@ -381,11 +397,14 @@ var GameplayLayer = cc.LayerColor.extend({
 });
 
 var GameplayScene = cc.Scene.extend({
+	mainGameLayer:null,
+
 	onEnter:function() {
 		this._super();
 
-		var layer = new GameplayLayer();
-        layer.initWithLevel(cc.c4b(0,0,0,0), profile.selectedLevel);	// use the global setting to generate map from selected level
-        this.addChild(layer);
+		// main game layer
+		this.mainGameLayer = new GameplayLayer();
+        this.mainGameLayer.initWithLevel(cc.c4b(0,0,0,0), profile.selectedLevel);	// use the global setting to generate map from selected level
+        this.addChild(this.mainGameLayer, 0, Tag.GAMEPLAY_LAYER);
 	}
 });
