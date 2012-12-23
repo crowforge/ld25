@@ -1,15 +1,15 @@
 Ludum Dare 25 Jam Event
 
-"Trios"
+"Trois"
 
-You control "Trios" to its captured prey, a (virtual) goat. You're already in your domain. But the path to each of your prey is kind da difficult to your clumsy move. 
+You control "Trois" to its captured prey, a (virtual) goat. You're already in your domain. But the path to each of your prey is kind da difficult to your clumsy move. 
 
 Just kick-butt it, next prey is awaiting. 
 
 There's 5 levels currently.
 
 - Control keys -
-Each column maps to each leg of Trios. 
+Each column maps to each leg of Trois. 
 Q, W, E -> Hold to keep pullin up individual leg of robot (in y-axis only) 
 A, S, D -> Move individual leg to the right (in positive x-axis) 
 Z, X, C -> Same as A,S,D but in opposite direction 
@@ -21,9 +21,8 @@ R -> If you hopeless, you will need this.
 3. From 2, that means we cannot just move forward without "pull" up legs. 
 4. Enjoy!
 
-See more information at
+Please rate and play our game at the link below.
 http://www.ludumdare.com/compo/ludum-dare-25/?action=preview&uid=647
-http://basementdojo.com/ld25/
 
 Wasin
 Indie Game Developer
